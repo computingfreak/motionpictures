@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Motion Picture Generator</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-soft: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #38bdf8;
+      --accent-2: #a78bfa;
+      --ok: #22c55e;
+      --warn: #eab308;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: radial-gradient(circle at 20% 10%, #1e293b, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem 3rem;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 3.2vw, 2.8rem);
+      letter-spacing: 0.02em;
+    }
+
+    .lead {
+      color: var(--muted);
+      max-width: 70ch;
+      margin-top: 0.75rem;
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .card {
+      background: linear-gradient(170deg, #0b1222, #111827 38%, #0f172a);
+      border: 1px solid #23314e;
+      border-radius: 14px;
+      padding: 1rem;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    }
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: #d1d5db;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.7rem;
+      border: 1px solid #34445f;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.7);
+      font-size: 0.84rem;
+      color: #cbd5e1;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+
+    .chip input { accent-color: var(--accent); }
+
+    .chip:hover { border-color: var(--accent); }
+
+    .chip.active {
+      background: linear-gradient(120deg, rgba(56, 189, 248, 0.25), rgba(167, 139, 250, 0.25));
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .radio-group {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .radio {
+      border: 1px solid #324159;
+      border-radius: 12px;
+      padding: 0.7rem;
+      background: rgba(2, 6, 23, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+
+    .radio input { accent-color: var(--accent-2); }
+
+    .radio .tag {
+      font-size: 0.8rem;
+      color: #0b1222;
+      border-radius: 999px;
+      padding: 0.15rem 0.5rem;
+      font-weight: 700;
+    }
+
+    .tag.ok { background: rgba(34, 197, 94, 0.95); }
+    .tag.warn { background: rgba(234, 179, 8, 0.95); }
+    .tag.danger { background: rgba(239, 68, 68, 0.95); }
+
+    .controls {
+      display: grid;
+      gap: 0.8rem;
+    }
+
+    select, input[type="number"], input[type="text"], input[type="range"] {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid #30415e;
+      background: #0b1220;
+      color: #e2e8f0;
+      padding: 0.6rem;
+      font-size: 0.95rem;
+    }
+
+    .button-row {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 0.7rem 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: #08111f;
+      background: linear-gradient(120deg, var(--accent), var(--accent-2));
+    }
+
+    button.secondary {
+      background: transparent;
+      border: 1px solid #415678;
+      color: #cbd5e1;
+    }
+
+    .output {
+      margin-top: 1.4rem;
+      background: rgba(2, 6, 23, 0.8);
+      border: 1px solid #2f3f5d;
+      border-radius: 14px;
+      padding: 1rem;
+    }
+
+    .output h3 { margin-top: 0; }
+
+    .stack {
+      display: grid;
+      gap: 0.4rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      border: 1px solid #355176;
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      color: #bfdbfe;
+      margin-right: 0.4rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .small { color: #94a3b8; font-size: 0.86rem; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>Random Motion Picture Generation Studio</h1>
+    <p class="lead">Build aesthetic loops, cinematic short scenes, social-media-ready clips, and abstract generative visuals with one click. Pick your constraints, lock a seed for reproducibility, then generate a random prompt you can render in your preferred pipeline.</p>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Visual Style Library</h2>
+        <p class="hint">Select any number of styles. Generator will pick from your selection.</p>
+        <div class="options" id="styleOptions"></div>
+      </section>
+
+      <section class="card">
+        <h2>Scene Type</h2>
+        <p class="hint">Mix characters, environments, and abstract effects.</p>
+        <div class="options" id="sceneOptions"></div>
+      </section>
+
+      <section class="card">
+        <h2>Dynamic Feel</h2>
+        <div class="radio-group" id="dynamicsOptions"></div>
+      </section>
+
+      <section class="card">
+        <h2>Camera Movement</h2>
+        <p class="hint">Constrain camera behavior for generation.</p>
+        <div class="options" id="cameraOptions"></div>
+      </section>
+
+      <section class="card">
+        <h2>Timing + Export</h2>
+        <div class="controls">
+          <label>Duration
+            <select id="durationSelect"></select>
+          </label>
+          <label>Export Format
+            <select id="formatSelect"></select>
+          </label>
+          <label>Frame Rate
+            <select id="fpsSelect"></select>
+          </label>
+          <label>Motion Intensity: <span id="intensityValue">55</span>
+            <input id="intensity" type="range" min="0" max="100" value="55" />
+          </label>
+          <label>Seed (optional lock for reproducibility)
+            <input id="seedInput" type="text" placeholder="e.g. 732198" />
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Curated Presets</h2>
+        <p class="hint">Click to auto-configure a known production target.</p>
+        <div class="options" id="presetOptions"></div>
+      </section>
+    </div>
+
+    <div class="button-row">
+      <button id="generateBtn">Generate Random Motion Concept</button>
+      <button class="secondary" id="randomizeAllBtn">Randomize Selections</button>
+    </div>
+
+    <section class="output" id="output">
+      <h3>Generated Prompt</h3>
+      <div class="stack" id="result"></div>
+      <p class="small">Tip: Keep the same seed + settings to reproduce similar results across renders.</p>
+    </section>
+  </main>
+
+  <script>
+    const styles = [
+      '2D Cartoon Animation', 'Anime-style Motion', 'Watercolor Moving Painting', 'Oil Painting Time-lapse',
+      'Minimal Line Art Animation', 'Pixel Art (8-bit style)', 'Low Poly 3D', 'Neon Cyberpunk Motion',
+      'Futuristic UI/HUD Animations'
+    ];
+
+    const scenes = [
+      'City timelapse', 'Nature loop (forest, beach, snow)', 'Space scene (nebula, planets)',
+      'Rainy window aesthetic', 'Golden hour skyline', 'Walking loop', 'Talking head', 'Dancing',
+      'Fighting sequence', 'Emotional expressions', 'Particle systems', 'Fluid simulations',
+      'Generative fractals', 'Kaleidoscope loops', 'Data visualization motion'
+    ];
+
+    const dynamicOptions = [
+      { label: '🟢 Subtle Loop (background wallpaper style)', key: 'subtle', tag: 'Low', tagClass: 'ok' },
+      { label: '🟡 Moderate Motion (social media short)', key: 'moderate', tag: 'Medium', tagClass: 'warn' },
+      { label: '🔴 Cinematic Motion (dramatic camera + lighting)', key: 'cinematic', tag: 'High', tagClass: 'danger' }
+    ];
+
+    const cameraOptions = [
+      'Static', 'Slow zoom in/out', 'Orbit camera', 'Parallax depth effect',
+      'Handheld cinematic shake', 'Drone-style flythrough'
+    ];
+
+    const durations = ['5 sec loop', '10 sec loop', '15 sec social short', '30 sec cinematic'];
+    const formats = ['MP4', 'WebM', 'GIF', 'Transparent background (if possible)'];
+    const fps = ['24 fps', '30 fps', '60 fps'];
+
+    const presets = {
+      'Instagram Reel Ready': { dynamic: 'moderate', duration: '15 sec social short', format: 'MP4', fps: '30 fps' },
+      'Lo-fi Study Background': { dynamic: 'subtle', duration: '10 sec loop', format: 'WebM', fps: '24 fps' },
+      'Sci-fi Trailer Shot': { dynamic: 'cinematic', duration: '30 sec cinematic', format: 'MP4', fps: '24 fps' },
+      'Wallpaper Loop': { dynamic: 'subtle', duration: '5 sec loop', format: 'GIF', fps: '30 fps' },
+      'Startup Hero Section Animation': { dynamic: 'moderate', duration: '10 sec loop', format: 'WebM', fps: '60 fps' },
+      'Meditation Visual': { dynamic: 'subtle', duration: '15 sec social short', format: 'Transparent background (if possible)', fps: '24 fps' }
+    };
+
+    const styleWrap = document.getElementById('styleOptions');
+    const sceneWrap = document.getElementById('sceneOptions');
+    const dynamicWrap = document.getElementById('dynamicsOptions');
+    const cameraWrap = document.getElementById('cameraOptions');
+    const durationSelect = document.getElementById('durationSelect');
+    const formatSelect = document.getElementById('formatSelect');
+    const fpsSelect = document.getElementById('fpsSelect');
+    const intensity = document.getElementById('intensity');
+    const intensityValue = document.getElementById('intensityValue');
+    const seedInput = document.getElementById('seedInput');
+    const result = document.getElementById('result');
+    const presetWrap = document.getElementById('presetOptions');
+
+    function buildChip(label, groupName) {
+      const chip = document.createElement('label');
+      chip.className = 'chip';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.name = groupName;
+      input.value = label;
+      input.addEventListener('change', () => chip.classList.toggle('active', input.checked));
+      chip.append(input, document.createTextNode(label));
+      return chip;
+    }
+
+    function populate() {
+      styles.forEach(item => styleWrap.append(buildChip(item, 'styles')));
+      scenes.forEach(item => sceneWrap.append(buildChip(item, 'scenes')));
+      cameraOptions.forEach(item => cameraWrap.append(buildChip(item, 'cameras')));
+
+      dynamicOptions.forEach((opt, idx) => {
+        const row = document.createElement('label');
+        row.className = 'radio';
+        row.innerHTML = `<span>${opt.label}</span><span class="tag ${opt.tagClass}">${opt.tag}</span>`;
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'dynamic';
+        input.value = opt.key;
+        if (idx === 1) input.checked = true;
+        row.prepend(input);
+        dynamicWrap.append(row);
+      });
+
+      [durations, formats, fps].forEach((list, i) => {
+        const target = [durationSelect, formatSelect, fpsSelect][i];
+        list.forEach(val => {
+          const opt = document.createElement('option');
+          opt.value = opt.textContent = val;
+          target.append(opt);
+        });
+      });
+
+      Object.keys(presets).forEach(name => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'secondary';
+        btn.textContent = name;
+        btn.addEventListener('click', () => applyPreset(name));
+        presetWrap.append(btn);
+      });
+    }
+
+    function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    function selectedValues(name, fallback) {
+      const all = [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(el => el.value);
+      return all.length ? all : [pickRandom(fallback)];
+    }
+
+    function activeDynamic() {
+      return document.querySelector('input[name="dynamic"]:checked')?.value || 'moderate';
+    }
+
+    function applyPreset(name) {
+      const preset = presets[name];
+      if (!preset) return;
+      [...document.querySelectorAll('input[name="dynamic"]')].forEach(r => r.checked = r.value === preset.dynamic);
+      durationSelect.value = preset.duration;
+      formatSelect.value = preset.format;
+      fpsSelect.value = preset.fps;
+      generate(name);
+    }
+
+    function seedNumber(rawSeed) {
+      if (!rawSeed) return null;
+      let h = 2166136261;
+      for (let i = 0; i < rawSeed.length; i++) {
+        h ^= rawSeed.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return Math.abs(h);
+    }
+
+    function seededPick(arr, seed) {
+      if (seed === null) return pickRandom(arr);
+      const index = seed % arr.length;
+      return arr[index];
+    }
+
+    function generate(presetName = null) {
+      const seed = seedNumber(seedInput.value.trim());
+      const style = seededPick(selectedValues('styles', styles), seed);
+      const scene = seededPick(selectedValues('scenes', scenes), seed === null ? null : seed + 3);
+      const camera = seededPick(selectedValues('cameras', cameraOptions), seed === null ? null : seed + 7);
+      const dynamic = dynamicOptions.find(o => o.key === activeDynamic())?.label;
+      const categories = ['Aesthetic loops (background visuals)', 'Cinematic short scenes', 'Social-media-ready motion clips', 'Abstract generative visuals'];
+      const category = seededPick(categories, seed === null ? null : seed + 13);
+
+      const prompt = `${style}, ${scene}, ${dynamic}, ${camera}, ${durationSelect.value}, ${fpsSelect.value}, ${formatSelect.value}, motion intensity ${intensity.value}/100, category: ${category}.`;
+
+      result.innerHTML = `
+        <div><span class="pill">${presetName || 'Custom Setup'}</span><span class="pill">Seed: ${seedInput.value.trim() || 'randomized'}</span></div>
+        <strong>${prompt}</strong>
+        <div>Suggested brief: Create a ${durationSelect.value} render using ${style} with ${scene.toLowerCase()} and ${camera.toLowerCase()} movement. Keep dynamics at ${dynamic.toLowerCase()}.</div>
+      `;
+    }
+
+    document.getElementById('generateBtn').addEventListener('click', () => generate());
+    document.getElementById('randomizeAllBtn').addEventListener('click', () => {
+      [...document.querySelectorAll('input[type="checkbox"]')].forEach(ch => {
+        ch.checked = Math.random() > 0.6;
+        ch.dispatchEvent(new Event('change'));
+      });
+      const dynamics = [...document.querySelectorAll('input[name="dynamic"]')];
+      dynamics[Math.floor(Math.random() * dynamics.length)].checked = true;
+      durationSelect.selectedIndex = Math.floor(Math.random() * durations.length);
+      formatSelect.selectedIndex = Math.floor(Math.random() * formats.length);
+      fpsSelect.selectedIndex = Math.floor(Math.random() * fps.length);
+      intensity.value = Math.floor(Math.random() * 101);
+      intensity.dispatchEvent(new Event('input'));
+      seedInput.value = Math.random() > 0.5 ? String(Math.floor(Math.random() * 999999)) : '';
+      generate('Randomized Setup');
+    });
+
+    intensity.addEventListener('input', () => intensityValue.textContent = intensity.value);
+
+    populate();
+    generate();
+  </script>
+</body>
+</html>
